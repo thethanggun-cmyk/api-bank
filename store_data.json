@@ -1,0 +1,20 @@
+{
+  "shopInfo": {
+    "notice": "CỬA HÀNG SẴN SÀNG - VUI LÒNG CHỌN SẢN PHẨM"
+  },
+  "theme": {
+    "primary": "#00e5ff",
+    "secondary": "#0070f3",
+    "bgBase": "#080c14",
+    "bgCard": "#0e1624",
+    "border": "#1a2a44"
+  },
+  "categories": [],
+  "products": [],
+  "recentTransactions": [],
+  "processedTxCodes": [],
+  "users": {},
+  "vouchers": {},
+  "giftcodes": {},
+  "musicUrl": ""
+}

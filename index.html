@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{{SHOP_NAME}} Mini App</title>
+    <script>
+        (function() {
+            try {
+                if (window.location.search) {
+                    var p = new URLSearchParams(window.location.search);
+                    if (p.has('uid') || p.has('avatar') || p.has('name') || p.has('is_admin')) {
+                        p.delete('uid');
+                        p.delete('avatar');
+                        p.delete('name');
+                        p.delete('is_admin');
+                        var qs = p.toString();
+                        var clean = window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
+                        if (window.history && window.history.replaceState) {
+                            window.history.replaceState(null, document.title, clean);
+                        }
+                    }
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="min-h-screen flex justify-center items-start selection:bg-cyan-500 selection:text-black">
+
+    <div id="pcBlockScreen" class="fixed inset-0 z-[110] bg-[#080c14] hidden flex-col items-center justify-center p-6 text-center select-none">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-3xl mb-4 shadow-[0_0_30px_rgba(245,158,11,0.3)] animate-pulse">
+            <i class="fa-solid fa-mobile-screen-button"></i>
+        </div>
+        <h2 class="text-base font-extrabold text-white uppercase tracking-wider mb-2">CHỈ HỖ TRỢ THIẾT BỊ DI ĐỘNG</h2>
+        <p class="text-xs text-gray-400 max-w-xs leading-relaxed mb-6">
+            Hệ thống chỉ cho phép mở trên ứng dụng Telegram của điện thoại (iOS / Android) để đảm bảo an toàn giao dịch.
+        </p>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0e1624] border border-[#1a2a44] text-[11px] text-cyan-300 font-bold">
+            <i class="fa-brands fa-apple text-sm"></i> iOS &nbsp;|&nbsp; <i class="fa-brands fa-android text-sm"></i> Android Only
+        </div>
+    </div>
+
+    <div id="vpnLockScreen" class="fixed inset-0 z-[100] bg-[#080c14] hidden flex-col items-center justify-center p-6 text-center select-none">
+        <div class="w-16 h-16 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center text-3xl mb-4 shadow-[0_0_30px_rgba(244,63,94,0.3)]">
+            <i class="fa-solid fa-shield-virus"></i>
+        </div>
+        <h2 class="text-base font-extrabold text-white uppercase tracking-wider mb-2">PHÁT HIỆN KẾT NỐI VPN / PROXY</h2>
+        <p class="text-xs text-gray-400 max-w-xs leading-relaxed mb-6">
+            Vui lòng tắt kết nối mạng ảo (VPN, 1.1.1.1 WARP, Proxy) để bảo vệ số dư tài khoản của bạn.
+        </p>
+        <button onclick="window.location.reload()" class="btn-press px-6 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs uppercase tracking-wider">
+            KIỂM TRA LẠI
+        </button>
+    </div>
+
+    <div id="splashScreen" class="fixed inset-0 z-50 bg-[#080c14] flex flex-col items-center justify-center p-6 select-none">
+        <div class="relative mb-5">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-[0_0_25px_rgba(0,229,255,0.35)] animate-pulse">
+                <div class="w-full h-full bg-[#080c14] rounded-[14px] flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-2xl text-cyan-400"></i>
+                </div>
+            </div>
+        </div>
+        <h1 class="text-base font-extrabold tracking-wider text-white uppercase mb-1">{{SHOP_NAME}}</h1>
+        <p id="splashStatusText" class="text-xs text-cyan-400 font-medium mb-5">Đang khởi tạo ứng dụng...</p>
+        <div class="w-56 bg-[#0e1624] h-2 rounded-full border border-[#1a2a44] overflow-hidden p-0.5 shadow-inner">
+            <div id="splashProgressBar" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-100 ease-out shadow-[0_0_8px_#00e5ff]" style="width: 5%"></div>
+        </div>
+        <div id="splashProgressText" class="text-[11px] font-num font-bold text-gray-400 mt-2">5%</div>
+    </div>
+
+    <audio id="bgmAudio" loop preload="auto"></audio>
+
+    <div id="appContainer" class="w-full max-w-md min-h-screen flex flex-col relative border-x border-[var(--color-border)] shadow-2xl bg-[var(--color-bg-base)]">
+        <div id="clientStoreContainer" class="w-full flex flex-col pt-3 pb-28">
+
+            <section class="w-full px-4 mb-3">
+                <div class="w-full p-3 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] flex items-center justify-between shadow-lg relative overflow-hidden">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="relative shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-md overflow-hidden">
+                                <img id="userAvatar" src="" class="w-full h-full rounded-[10px] object-cover bg-slate-800" alt="Avatar">
+                            </div>
+                            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-[var(--color-bg-surface)] rounded-full animate-pulse"></span>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <h2 id="userNameDisplay" class="text-sm font-bold text-white tracking-wide truncate">Đang tải...</h2>
+                                <span id="userRoleBadge" class="hidden px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/50">SELLER VIP</span>
+                            </div>
+                            <div class="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                                <span>ID: <span id="userIdDisplay" class="font-num text-gray-300">...</span></span>
+                                <button onclick="sao_chep_vao_khay_nho('userIdDisplay', 'Đã sao chép ID Telegram!')" class="btn-press hover:text-cyan-300 text-gray-400 p-0.5">
+                                    <i class="fa-regular fa-copy text-[10px]"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1 shrink-0">
+                        <div class="flex items-center gap-1.5">
+                            <div id="bgmControlWidget" onclick="bat_tat_nhac_nen()" class="btn-press cursor-pointer flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/50 shadow-sm" title="Bật/Tắt nhạc">
+                                <div id="bgmDiscIcon" class="w-3.5 h-3.5 rounded-full bg-cyan-400/20 border border-cyan-400 flex items-center justify-center text-cyan-300 text-[8px]">
+                                    <i class="fa-solid fa-compact-disc"></i>
+                                </div>
+                                <div id="bgmEqualizer" class="flex items-end gap-0.5 h-3">
+                                    <span class="eq-bar w-0.5 bg-cyan-400 rounded-full h-1"></span>
+                                    <span class="eq-bar w-0.5 bg-cyan-400 rounded-full h-2.5"></span>
+                                    <span class="eq-bar w-0.5 bg-cyan-400 rounded-full h-1.5"></span>
+                                </div>
+                            </div>
+                            <div class="flex items-center bg-[#080c14] p-0.5 rounded-lg border border-[#1a2a44] text-[9px] font-bold">
+                                <button id="langBtnVi" onclick="dat_ngon_ngu('vi')" class="px-1.5 py-0.5 rounded bg-cyan-400 text-black transition">VI</button>
+                                <button id="langBtnEn" onclick="dat_ngon_ngu('en')" class="px-1.5 py-0.5 rounded text-gray-400 hover:text-white transition">EN</button>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="userBalanceDisplay" class="text-sm font-bold tracking-tight text-cyan-400 font-num leading-tight">0đ</div>
+                            <div id="userVerifiedLabel" onclick="mo_hop_thoai_xac_minh()" class="btn-press cursor-pointer flex items-center justify-end gap-1 mt-0.5 text-[8px] font-extrabold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-500/40">
+                                <i class="fa-solid fa-circle-check text-cyan-400"></i> VERIFIED
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="w-full px-4 mb-3">
+                <div class="w-full p-2.5 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] flex items-center gap-2 overflow-hidden shadow-sm">
+                    <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs shrink-0">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </span>
+                    <marquee id="shopNoticeDisplay" class="text-[11px] font-semibold text-gray-300 tracking-wide">
+                        CỬA HÀNG SẴN SÀNG - VUI LÒNG CHỌN SẢN PHẨM
+                    </marquee>
+                </div>
+            </section>
+
+            <div id="tab-mua-key" class="tab-content w-full px-4 space-y-3">
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md">
+                    <div class="flex items-center justify-between mb-3">
+                        <span id="txt-step1-title" class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-gamepad text-cyan-400"></i> 1. CHỌN GAME / ỨNG DỤNG
+                        </span>
+                        <span id="catCountBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-[#080c14] border border-[#1a2a44] text-cyan-300 font-num font-bold">0 mục</span>
+                    </div>
+                    <div id="categoryListContainer" class="flex gap-2 overflow-x-auto pb-1.5"></div>
+                </div>
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span id="txt-step2-title" class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-cyan-400"></i> 2. CHỌN VẬT PHẨM &amp; MẶT HÀNG
+                        </span>
+                        <span class="text-[10px] text-cyan-400 font-semibold flex items-center gap-1">
+                            <i class="fa-regular fa-clock text-[10px]"></i> 1h / 1d / 7d / 30d / vv
+                        </span>
+                    </div>
+                    <div id="productListContainer" class="w-full space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="tab-mua-acc" class="tab-content w-full px-4 space-y-3 hidden">
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2.5">
+                    <span id="txt-acc-title" class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield text-cyan-400"></i> KHO TÀI KHOẢN CAO CẤP
+                    </span>
+                    <div id="accListContainer" class="w-full space-y-2"></div>
+                </div>
+            </div>
+
+            <div id="tab-nap-tien" class="tab-content w-full px-4 space-y-3 hidden">
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-3 text-center">
+                    <div id="txt-deposit-title" class="flex items-center justify-center gap-2 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                        <i class="fa-solid fa-qrcode text-base"></i> VIETQR MBBANK ĐỐI SOÁT TỰ ĐỘNG 24/7
+                    </div>
+                    <p id="txt-deposit-sub" class="text-[11px] text-gray-400">Chuyển khoản bất kỳ số tiền nào. Hệ thống tự động nhận diện và cộng tiền trong 1 giây!</p>
+                    <div class="relative w-64 h-64 mx-auto p-2 rounded-2xl bg-white shadow-2xl flex items-center justify-center border-2 border-cyan-400 overflow-hidden">
+                        <img id="vietQrAutoImg" src="" alt="VietQR" class="w-full h-full object-contain">
+                    </div>
+                    <div class="space-y-1.5 text-left bg-[#080c14] p-3 rounded-xl border border-[#1a2a44] text-xs font-num">
+                        <div class="flex items-center justify-between">
+                            <span id="txt-label-bank" class="text-gray-400">Ngân hàng:</span>
+                            <strong class="text-cyan-300">MBBank (MB)</strong>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span id="txt-label-stk" class="text-gray-400">Số tài khoản:</span>
+                            <div class="flex items-center gap-1">
+                                <strong id="depositBankAccTxt" class="text-white">...</strong>
+                                <button onclick="sao_chep_vao_khay_nho('depositBankAccTxt', 'Đã sao chép STK!')" class="text-cyan-400 hover:text-white p-0.5"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span id="txt-label-ctk" class="text-gray-400">Chủ tài khoản:</span>
+                            <strong id="depositAccountNameTxt" class="text-white">...</strong>
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-[#1a2a44]">
+                            <span id="txt-label-memo" class="text-amber-400 font-bold">Nội dung CK:</span>
+                            <div class="flex items-center gap-1">
+                                <strong id="depositSyntaxTxt" class="text-cyan-300 font-bold">...</strong>
+                                <button onclick="sao_chep_vao_khay_nho('depositSyntaxTxt', 'Đã sao chép cú pháp!')" class="text-cyan-400 hover:text-white p-0.5"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="txt-polling-status" class="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-[10px] text-cyan-300 flex items-center justify-center gap-1.5 font-semibold">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tự động đối soát giao dịch ngân hàng thời gian thực (30s)...
+                    </div>
+                </div>
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2">
+                    <span id="txt-deposit-history-title" class="text-xs font-bold text-white uppercase">Lịch Sử Nạp Của Bạn</span>
+                    <div id="depositHistoryContainer" class="w-full space-y-1.5"></div>
+                </div>
+            </div>
+
+            <div id="tab-top-nap" class="tab-content w-full px-4 space-y-3 hidden">
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span id="txt-leaderboard-title" class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> TOP NẠP (TỪ 50.000Đ TRỞ LÊN)
+                        </span>
+                    </div>
+                    <div id="leaderboardListContainer" class="w-full space-y-2"></div>
+                </div>
+            </div>
+
+            <div id="tab-ca-nhan" class="tab-content w-full px-4 space-y-3 hidden">
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2.5">
+                    <span id="txt-voucher-title" class="text-xs font-bold text-white uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-ticket text-cyan-400"></i> NHẬP MÃ VOUCHER / KHUYẾN MÃI
+                    </span>
+                    <div class="flex gap-1.5">
+                        <input id="voucherCodeInput" type="text" placeholder="Nhập mã voucher..." class="w-full bg-[#080c14] border border-[#1a2a44] focus:border-cyan-400 text-white text-xs px-3 py-2 rounded-xl outline-none uppercase font-num">
+                        <button id="txt-voucher-btn" onclick="nhap_ma_thuong('voucher')" class="btn-press px-3.5 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs rounded-xl uppercase shrink-0">ÁP DỤNG</button>
+                    </div>
+                </div>
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2.5">
+                    <span id="txt-giftcode-title" class="text-xs font-bold text-white uppercase flex items-center gap-1.5">
+                        <i class="fa-solid fa-gift text-amber-400"></i> NHẬP MÃ GIFTCODE TRI ÂN
+                    </span>
+                    <div class="flex gap-1.5">
+                        <input id="giftcodeInput" type="text" placeholder="Nhập mã giftcode..." class="w-full bg-[#080c14] border border-[#1a2a44] focus:border-cyan-400 text-white text-xs px-3 py-2 rounded-xl outline-none uppercase font-num">
+                        <button id="txt-giftcode-btn" onclick="nhap_ma_thuong('giftcode')" class="btn-press px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl uppercase shrink-0">NHẬN</button>
+                    </div>
+                </div>
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span id="txt-inventory-title" class="text-xs font-bold text-white uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-box-open text-cyan-400"></i> KHO HÀNG CỦA BẠN (KEY / ACC)
+                        </span>
+                        <span id="txt-inventory-sub" class="text-[10px] text-gray-400">Đã lưu cả trong Chat Bot</span>
+                    </div>
+                    <div id="userInventoryContainer" class="w-full space-y-2"></div>
+                </div>
+            </div>
+
+            <section class="w-full px-4 mt-3">
+                <div class="w-full p-4 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)] shadow-md space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span id="txt-recent-tx-title" class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> GIAO DỊCH GẦN ĐÂY
+                        </span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    </div>
+                    <div id="recentTxContainer" class="w-full space-y-1.5"></div>
+                </div>
+            </section>
+        </div>
+
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-[var(--color-bg-base)]/95 backdrop-blur-lg border-t border-[var(--color-border)] px-2 py-2 flex items-center justify-around pb-[max(env(safe-area-inset-bottom),0.6rem)]">
+            <button onclick="chuyen_tab('mua-key')" id="nav-mua-key" class="btn-press flex flex-col items-center gap-0.5 text-cyan-400 font-bold">
+                <i class="fa-solid fa-key text-base"></i>
+                <span id="txt-nav-key" class="text-[9px] uppercase tracking-wider">MUA KEY</span>
+            </button>
+            <button onclick="chuyen_tab('mua-acc')" id="nav-mua-acc" class="btn-press flex flex-col items-center gap-0.5 text-gray-400 hover:text-white font-medium">
+                <i class="fa-solid fa-id-card text-base"></i>
+                <span id="txt-nav-acc" class="text-[9px] uppercase tracking-wider">MUA ACC</span>
+            </button>
+            <button onclick="chuyen_tab('nap-tien')" id="nav-nap-tien" class="btn-press flex flex-col items-center gap-0.5 text-gray-400 hover:text-white font-medium">
+                <i class="fa-solid fa-wallet text-base"></i>
+                <span id="txt-nav-deposit" class="text-[9px] uppercase tracking-wider">NẠP TIỀN</span>
+            </button>
+            <button onclick="chuyen_tab('top-nap')" id="nav-top-nap" class="btn-press flex flex-col items-center gap-0.5 text-gray-400 hover:text-white font-medium">
+                <i class="fa-solid fa-ranking-star text-base"></i>
+                <span id="txt-nav-top" class="text-[9px] uppercase tracking-wider">TOP NẠP</span>
+            </button>
+            <button onclick="chuyen_tab('ca-nhan')" id="nav-ca-nhan" class="btn-press flex flex-col items-center gap-0.5 text-gray-400 hover:text-white font-medium">
+                <i class="fa-solid fa-user text-base"></i>
+                <span id="txt-nav-profile" class="text-[9px] uppercase tracking-wider">CÁ NHÂN</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="verifiedModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="w-full max-w-xs bg-[#0e1624] border border-cyan-500/50 rounded-2xl p-4 shadow-2xl space-y-3 text-xs text-center">
+            <div class="w-14 h-14 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-2xl mx-auto border border-cyan-500/40">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 id="modalVerifiedHeading" class="font-extrabold text-white text-sm uppercase tracking-wider">XÁC MINH DANH TÍNH</h3>
+            <div class="p-3 rounded-xl bg-[#080c14] border border-[#1a2a44] space-y-1.5 text-left">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">Telegram:</span>
+                    <strong id="modalVerifiedName" class="text-white truncate max-w-[140px]">...</strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">ID Tài khoản:</span>
+                    <strong id="modalVerifiedUid" class="text-cyan-300 font-num">...</strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">Cấp bậc:</span>
+                    <strong id="modalVerifiedRole" class="text-amber-400 font-bold">THÀNH VIÊN</strong>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-400">Trạng thái:</span>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-cyan-950 text-cyan-300 border border-cyan-500/40">
+                        <i class="fa-solid fa-circle-check text-cyan-400"></i> VERIFIED
+                    </span>
+                </div>
+            </div>
+            <p id="modalVerifiedDesc" class="text-[11px] text-gray-400 leading-relaxed">
+                Tài khoản của bạn đã được kết nối an toàn với máy chủ Telegram. Mọi giao dịch nạp tiền VietQR và mua key đều được bảo vệ và tự động hoá 100%.
+            </p>
+            <button onclick="dong_hop_thoai_xac_minh()" class="btn-press w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold uppercase tracking-wider">ĐÃ HIỂU</button>
+        </div>
+    </div>
+
+    <div id="purchaseModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="w-full max-w-xs bg-[#0e1624] border border-cyan-500/50 rounded-2xl p-4 shadow-2xl space-y-3 text-xs text-center">
+            <div class="w-12 h-12 rounded-full bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-xl mx-auto border border-cyan-500/40">
+                <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <h3 id="modalProdTitle" class="font-bold text-white text-sm">Xác Nhận Mua</h3>
+            <div id="modalProdDurationBadge" class="inline-block px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40 text-[10px] font-bold">1 Ngày</div>
+            <p id="modalProdPrice" class="text-cyan-400 font-bold font-num text-base">0đ</p>
+            <p id="modalProdHelpTxt" class="text-gray-400 text-[11px]">Key sẽ được cấp ngay trên màn hình và gửi trực tiếp vào tin nhắn Telegram của bạn.</p>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button id="modalBtnCancel" onclick="dong_hop_thoai_mua_hang()" class="btn-press py-2 rounded-xl bg-[#080c14] border border-[#1a2a44] text-gray-300 font-semibold">HUỶ</button>
+                <button id="modalBtnConfirm" onclick="xac_nhan_mua_hang()" class="btn-press py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold">MUA NGAY</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-cyan-950/95 border border-cyan-400 text-cyan-300 text-xs font-semibold shadow-2xl backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
+        Thông báo
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

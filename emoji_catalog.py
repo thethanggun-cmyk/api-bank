@@ -1,0 +1,19 @@
+TG_EMOJI = {
+    "FIRE": "<tg-emoji emoji-id=\"5424972470023104089\">🔥</tg-emoji>",
+    "LIGHTNING": "<tg-emoji emoji-id=\"5224607267797606837\">⚡</tg-emoji>",
+    "CHECK": "<tg-emoji emoji-id=\"5206607081334906820\">✅</tg-emoji>",
+    "CROSS": "<tg-emoji emoji-id=\"5210952531676504517\">❌</tg-emoji>",
+    "STAR": "<tg-emoji emoji-id=\"5438496463044752972\">⭐</tg-emoji>",
+    "LOCK": "<tg-emoji emoji-id=\"5296369303661067030\">🔒</tg-emoji>",
+    "KEY": "<tg-emoji emoji-id=\"5877465816030515018\">🔑</tg-emoji>",
+    "MONEY": "<tg-emoji emoji-id=\"5409048419211682843\">💵</tg-emoji>",
+    "SHOPPING": "<tg-emoji emoji-id=\"5382357040008021292\">🛍️</tg-emoji>",
+    "NOTICE": "<tg-emoji emoji-id=\"5424818078833715060\">📢</tg-emoji>",
+    "TROPHY": "<tg-emoji emoji-id=\"5415655814079723871\">🏆</tg-emoji>",
+    "ROCKET": "<tg-emoji emoji-id=\"5224607267797606837\">🚀</tg-emoji>",
+    "WARNING": "<tg-emoji emoji-id=\"5447644880824181073\">⚠️</tg-emoji>",
+    "GIFT": "<tg-emoji emoji-id=\"5406756500108501710\">🎁</tg-emoji>",
+    "USER": "<tg-emoji emoji-id=\"5879770735999717115\">👤</tg-emoji>",
+    "CARD": "<tg-emoji emoji-id=\"5204357742537492089\">💳</tg-emoji>",
+    "CROWN": "<tg-emoji emoji-id=\"5415655814079723871\">👑</tg-emoji>"
+}
